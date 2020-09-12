@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/lumen/bootstrap.min.css" crossorigin="anonymous">
+
+	<title>Population Estimates in 2019</title>
+</head>
+
+<body class="bg-primary">
+	<nav class="navbar navbar-dark bg-primary">
+		<div class="container">
+			<span class="navbar-brand">Population Estimates in 2019</span>
+		</div>
+	</nav>
+	<section class="container my-3">
+		<svg id="MapArea" class="mb-3"></svg>
+		<a href="https://en.wikipedia.org/wiki/List_of_capitals_in_the_United_States#State_capitals" class="text-light">
+			<i>Wikipedia</i>. Retrieved September 12, 2020.
+		</a>
+	</section>
+
+	<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.20/lodash.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/d3@5.15.0/dist/d3.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js" crossorigin="anonymous"></script>
+	<script>
+		(function () {
+			"use strict"
+
+			var DOM = {};
+			DOM.svg = d3.select("#MapArea");
+
+			var pMap = d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3.0.0/states-albers-10m.json"),
+				pCSV = d3.csv("state-data.csv");
+
+			jQuery.when(pMap, pCSV)
+			.then(function(us, data) {
+				// HT: https://github.com/topojson/us-atlas/
+				// HT: https://observablehq.com/@d3/bubble-map
+				//
+				// prepare helper functions used to calculate marker radii, translate
+				// coordinates onto the projection, format labels, and draw paths
+				var radius = d3.scaleSqrt([ 0, _.maxBy(data, "uPopulation").uPopulation ], [ 0, 35 ]),
+					projection = d3.geoAlbersUsa().scale(1300).translate([ 487.5, 305 ]),
+					format = d3.format(",.0f"),
+					path = d3.geoPath();
+
+				DOM.svg
+					// auto-size the map
+					.attr("viewBox", [ 0, 0, 975, 610 ])
+					.append("path")
+						// draw the main landmass on the map
+						.datum(topojson.feature(us, us.objects.nation))
+						.attr("fill", "#72CF75")
+						.attr("d", path);
+
+				DOM.svg
+					.append("path")
+						// draw state borders on the map, but prevent duplicate lines between states
+						.datum(topojson.mesh(us, us.objects.states, function (state, neighbor) {
+							return state !== neighbor;
+						}))
+						.attr("fill", "none")
+						.attr("stroke", "#DDD")
+						.attr("stroke-linejoin", "round")
+						.attr("d", path);
+
+				DOM.capitals = DOM.svg.append("g").attr("id", "capitals");
+
+				_.chain(data)
+					.orderBy([ "uPopulation" ], [ "desc" ])
+					.value()
+					.forEach(function (obj) {
+						DOM.capitals
+							// draw state capitals on the map, sized by population
+							.append("circle")
+								.attr("transform", "translate(" + projection([ obj.uLongitude, obj.uLatitude ]) + ")")
+								.attr("r", radius(obj.uPopulation))
+								.attr("fill", "#555")
+								.attr("fill-opacity", 0.5)
+								.attr("stroke", "#EEE")
+								.attr("stroke-width", 0.5)
+							.append("title")
+								.text(obj.uCapital + ", " +
+									obj.uStateID + "\n" +
+									format(obj.uPopulation));
+					});
+			});
+		})();
+	</script>
+</body>
+
+</html>
