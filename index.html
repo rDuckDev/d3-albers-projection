@@ -63,7 +63,7 @@
 							return state !== neighbor;
 						}))
 						.attr("fill", "none")
-						.attr("stroke", "#DDD")
+						.attr("stroke", "#23A127")
 						.attr("stroke-linejoin", "round")
 						.attr("d", path);
 
@@ -78,10 +78,9 @@
 							.append("circle")
 								.attr("transform", "translate(" + projection([ obj.uLongitude, obj.uLatitude ]) + ")")
 								.attr("r", radius(obj.uPopulation))
-								.attr("fill", "#555")
+								.attr("fill", "#222")
 								.attr("fill-opacity", 0.5)
-								.attr("stroke", "#EEE")
-								.attr("stroke-width", 0.5)
+								.attr("stroke", "#222")
 								.attr("data-toggle", "popover")
 								.attr("data-content", format(obj.uPopulation))
 								.attr("title", obj.uCapital + ", " + obj.uStateID);
