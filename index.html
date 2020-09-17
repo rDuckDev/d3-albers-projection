@@ -40,7 +40,7 @@
 				//
 				// prepare helper functions used to calculate marker radii, translate
 				// coordinates onto the projection, format labels, and draw paths
-				var radius = d3.scaleSqrt([ 0, _.maxBy(data, "uPopulation").uPopulation ], [ 0, 35 ]),
+				var radius = d3.scaleSqrt([ 5, _.maxBy(data, "uPopulation").uPopulation ], [ 5, 40 ]),
 					projection = d3.geoAlbersUsa().scale(1300).translate([ 487.5, 305 ]),
 					format = d3.format(",.0f"),
 					path = d3.geoPath();
